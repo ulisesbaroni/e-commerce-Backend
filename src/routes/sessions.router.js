@@ -29,4 +29,14 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
+// GET /api/sessions/current
+router.get("/current", (req, res, next) => {
+  passport.authenticate("current", { session: false }, (error, user, info) => {
+    if (error) return res.status(500).json({ status: "error", message: "Error al validar la sesión" });
+    if (!user) return res.status(401).json({ status: "error", message: info?.message || "No autorizado" });
+
+    res.json({ status: "success", payload: user });
+  })(req, res, next);
+});
+
 export default router;

@@ -1,8 +1,13 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import * as CartManager from "../managers/CartManager.js";
+
+function cookieExtractor(req) {
+  return req?.cookies?.token || null;
+}
 
 passport.use(
   "register",
@@ -53,6 +58,27 @@ passport.use(
       return done(error);
     }
   })
+);
+
+passport.use(
+  "current",
+  new JwtStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      secretOrKey: process.env.JWT_SECRET,
+    },
+    async (payload, done) => {
+      try {
+        const user = await User.findById(payload.id);
+
+        if (!user) return done(null, false, { message: "Usuario no encontrado" });
+
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
 );
 
 export default passport;
