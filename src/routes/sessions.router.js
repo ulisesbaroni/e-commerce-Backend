@@ -1,4 +1,5 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
 import passport from "../config/passport.config.js";
 
 const router = Router();
@@ -19,7 +20,12 @@ router.post("/login", (req, res, next) => {
     if (error) return res.status(500).json({ status: "error", message: "Error al iniciar sesión" });
     if (!user) return res.status(401).json({ status: "error", message: info?.message || "Credenciales inválidas" });
 
-    res.json({ status: "success", payload: user });
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.cookie("token", token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+    res.json({ status: "success", payload: user, token });
   })(req, res, next);
 });
 
