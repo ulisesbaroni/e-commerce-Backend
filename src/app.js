@@ -6,9 +6,11 @@ import { Server } from "socket.io";
 import { engine } from "express-handlebars";
 import { initSocket } from "./socket.js";
 import { connectDB } from "./db.js";
+import passport from "./config/passport.config.js";
 
 import productsRouter from "./routes/products.router.js";
 import cartsRouter from "./routes/carts.router.js";
+import sessionsRouter from "./routes/sessions.router.js";
 import viewsRouter from "./routes/views.router.js";
 
 const app = express();
@@ -36,10 +38,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
+app.use(passport.initialize());
 
 // Rutas API
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
+app.use("/api/sessions", sessionsRouter);
 
 // Rutas vistas
 app.use("/", viewsRouter);
