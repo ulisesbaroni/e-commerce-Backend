@@ -2,8 +2,8 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import bcrypt from "bcrypt";
-import User from "../models/user.model.js";
-import * as CartManager from "../managers/CartManager.js";
+import { userRepository } from "../repositories/user.repository.js";
+import { cartRepository } from "../repositories/cart.repository.js";
 
 function cookieExtractor(req) {
   return req?.cookies?.token || null;
@@ -19,15 +19,15 @@ passport.use(
         return done(null, false, { message: "Faltan campos obligatorios" });
       }
 
-      const exists = await User.findOne({ email });
+      const exists = await userRepository.findByEmail(email);
 
       if (exists) {
         return done(null, false, { message: "El email ya está registrado" });
       }
 
-      const cart = await CartManager.create();
+      const cart = await cartRepository.create();
 
-      const user = await User.create({
+      const user = await userRepository.create({
         first_name,
         last_name,
         email,
@@ -47,7 +47,7 @@ passport.use(
   "login",
   new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
     try {
-      const user = await User.findOne({ email });
+      const user = await userRepository.findByEmail(email);
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
         return done(null, false, { message: "Credenciales inválidas" });
@@ -69,7 +69,7 @@ passport.use(
     },
     async (payload, done) => {
       try {
-        const user = await User.findById(payload.id);
+        const user = await userRepository.findById(payload.id);
 
         if (!user) return done(null, false, { message: "Usuario no encontrado" });
 

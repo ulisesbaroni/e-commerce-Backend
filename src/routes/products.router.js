@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
-import * as ProductManager from "../managers/ProductManager.js";
+import { productRepository } from "../repositories/product.repository.js";
 
 const router = Router();
 
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
   try {
     const { limit = 10, page = 1, query, sort } = req.query;
 
-    const result = await ProductManager.getPaginated({ limit, page, query, sort });
+    const result = await productRepository.getPaginated({ limit, page, query, sort });
 
     const buildLink = (targetPage) => {
       if (!targetPage) return null;
@@ -50,7 +50,7 @@ router.get("/:pid", async (req, res) => {
 
     if (!isValidObjectId(id)) return res.status(400).json({ error: "ID inválido" });
 
-    const product = await ProductManager.getById(id);
+    const product = await productRepository.getById(id);
 
     if (!product) return res.status(404).json({ error: "Producto no encontrado" });
 
@@ -70,7 +70,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
-    const product = await ProductManager.create({ title, description, code, price, status, stock, category, thumbnails });
+    const product = await productRepository.create({ title, description, code, price, status, stock, category, thumbnails });
     res.status(201).json(product);
   } catch (error) {
     handleWriteError(error, res);
@@ -84,7 +84,7 @@ router.put("/:pid", async (req, res) => {
 
     if (!isValidObjectId(id)) return res.status(400).json({ error: "ID inválido" });
 
-    const updated = await ProductManager.update(id, req.body);
+    const updated = await productRepository.update(id, req.body);
 
     if (!updated) return res.status(404).json({ error: "Producto no encontrado" });
 
@@ -101,7 +101,7 @@ router.delete("/:pid", async (req, res) => {
 
     if (!isValidObjectId(id)) return res.status(400).json({ error: "ID inválido" });
 
-    const deleted = await ProductManager.remove(id);
+    const deleted = await productRepository.remove(id);
 
     if (!deleted) return res.status(404).json({ error: "Producto no encontrado" });
 

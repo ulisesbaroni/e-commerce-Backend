@@ -1,5 +1,5 @@
 import { isValidObjectId } from "mongoose";
-import * as ProductManager from "./managers/ProductManager.js";
+import { productRepository } from "./repositories/product.repository.js";
 
 export function initSocket(io) {
   io.on("connection", (socket) => {
@@ -8,8 +8,8 @@ export function initSocket(io) {
     // Crear producto
     socket.on("crear-producto", async (data) => {
       try {
-        await ProductManager.create(data);
-        const products = await ProductManager.getAll();
+        await productRepository.create(data);
+        const products = await productRepository.getAll();
         io.emit("productos-actualizados", products);
       } catch (error) {
         socket.emit("error-producto", "No se pudo crear el producto: " + error.message);
@@ -21,8 +21,8 @@ export function initSocket(io) {
       try {
         if (!isValidObjectId(id)) return;
 
-        await ProductManager.remove(id);
-        const products = await ProductManager.getAll();
+        await productRepository.remove(id);
+        const products = await productRepository.getAll();
         io.emit("productos-actualizados", products);
       } catch (error) {
         socket.emit("error-producto", "No se pudo eliminar el producto: " + error.message);

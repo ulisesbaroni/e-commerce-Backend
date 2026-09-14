@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
-import * as CartManager from "../managers/CartManager.js";
+import { cartRepository } from "../repositories/cart.repository.js";
 
 const router = Router();
 
 // POST /api/carts
 router.post("/", async (req, res) => {
   try {
-    const cart = await CartManager.create();
+    const cart = await cartRepository.create();
     res.status(201).json(cart);
   } catch (error) {
     res.status(500).json({ error: "Error al crear el carrito" });
@@ -21,7 +21,7 @@ router.get("/:cid", async (req, res) => {
 
     if (!isValidObjectId(id)) return res.status(400).json({ status: "error", message: "ID inválido" });
 
-    const cart = await CartManager.getByIdPopulated(id);
+    const cart = await cartRepository.getByIdPopulated(id);
 
     if (!cart) return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
 
@@ -41,7 +41,7 @@ router.post("/:cid/product/:pid", async (req, res) => {
       return res.status(400).json({ error: "ID inválido" });
     }
 
-    const cart = await CartManager.addProduct(cartId, productId);
+    const cart = await cartRepository.addProduct(cartId, productId);
 
     if (!cart) return res.status(404).json({ error: "Carrito no encontrado" });
 
@@ -61,7 +61,7 @@ router.delete("/:cid/products/:pid", async (req, res) => {
       return res.status(400).json({ status: "error", message: "ID inválido" });
     }
 
-    const cart = await CartManager.removeProduct(cartId, productId);
+    const cart = await cartRepository.removeProduct(cartId, productId);
 
     if (!cart) return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
 
@@ -89,7 +89,7 @@ router.put("/:cid", async (req, res) => {
       return res.status(400).json({ status: "error", message: "Cada producto debe tener un id válido y una cantidad mayor a 0" });
     }
 
-    const cart = await CartManager.updateProducts(cartId, products);
+    const cart = await cartRepository.updateProducts(cartId, products);
 
     if (!cart) return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
 
@@ -114,7 +114,7 @@ router.put("/:cid/products/:pid", async (req, res) => {
       return res.status(400).json({ status: "error", message: "Cantidad inválida" });
     }
 
-    const cart = await CartManager.updateQuantity(cartId, productId, quantity);
+    const cart = await cartRepository.updateQuantity(cartId, productId, quantity);
 
     if (!cart) return res.status(404).json({ status: "error", message: "Carrito o producto no encontrado" });
 
@@ -131,7 +131,7 @@ router.delete("/:cid", async (req, res) => {
 
     if (!isValidObjectId(cartId)) return res.status(400).json({ status: "error", message: "ID inválido" });
 
-    const cart = await CartManager.clear(cartId);
+    const cart = await cartRepository.clear(cartId);
 
     if (!cart) return res.status(404).json({ status: "error", message: "Carrito no encontrado" });
 

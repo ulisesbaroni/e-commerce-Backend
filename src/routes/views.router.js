@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
-import * as ProductManager from "../managers/ProductManager.js";
-import * as CartManager from "../managers/CartManager.js";
+import { productRepository } from "../repositories/product.repository.js";
+import { cartRepository } from "../repositories/cart.repository.js";
 
 const router = Router();
 
@@ -9,11 +9,11 @@ const router = Router();
 async function getOrCreateCartId(req, res) {
   const cookieCartId = req.cookies.cartId;
 
-  if (cookieCartId && isValidObjectId(cookieCartId) && (await CartManager.getById(cookieCartId))) {
+  if (cookieCartId && isValidObjectId(cookieCartId) && (await cartRepository.getById(cookieCartId))) {
     return cookieCartId;
   }
 
-  const cart = await CartManager.create();
+  const cart = await cartRepository.create();
   res.cookie("cartId", cart.id, { httpOnly: true });
   return cart.id;
 }
@@ -31,7 +31,7 @@ router.get("/", (req, res) => {
 
 // Vista en tiempo real
 router.get("/realtimeproducts", async (req, res) => {
-  const products = await ProductManager.getAll();
+  const products = await productRepository.getAll();
   res.render("realTimeProducts", { products: products.map((p) => p.toJSON()) });
 });
 
@@ -39,7 +39,7 @@ router.get("/realtimeproducts", async (req, res) => {
 router.get("/products", async (req, res) => {
   const { limit = 10, page = 1, query, sort } = req.query;
 
-  const result = await ProductManager.getPaginated({ limit, page, query, sort });
+  const result = await productRepository.getPaginated({ limit, page, query, sort });
 
   res.render("products", {
     products: result.docs.map((p) => p.toJSON()),
@@ -60,7 +60,7 @@ router.get("/products/:pid", async (req, res) => {
 
   if (!isValidObjectId(pid)) return res.status(400).send("ID inválido");
 
-  const product = await ProductManager.getById(pid);
+  const product = await productRepository.getById(pid);
 
   if (!product) return res.status(404).send("Producto no encontrado");
 
@@ -73,7 +73,7 @@ router.get("/carts/:cid", async (req, res) => {
 
   if (!isValidObjectId(cid)) return res.status(400).send("ID inválido");
 
-  const cart = await CartManager.getByIdPopulated(cid);
+  const cart = await cartRepository.getByIdPopulated(cid);
 
   if (!cart) return res.status(404).send("Carrito no encontrado");
 
