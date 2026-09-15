@@ -21,7 +21,7 @@ router.post("/login", (req, res, next) => {
     if (error) return res.status(500).json({ status: "error", message: "Error al iniciar sesión" });
     if (!user) return res.status(401).json({ status: "error", message: info?.message || "Credenciales inválidas" });
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role, cart: user.cart }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -38,6 +38,12 @@ router.get("/current", (req, res, next) => {
 
     res.json({ status: "success", payload: new UserDTO(user) });
   })(req, res, next);
+});
+
+// POST /api/sessions/logout
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.json({ status: "success", payload: null });
 });
 
 export default router;

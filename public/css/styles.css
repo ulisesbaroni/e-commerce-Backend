@@ -118,6 +118,27 @@ button,
   padding: 1rem;
 }
 
+.auth-form {
+  max-width: 320px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.auth-form input {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.mensaje-error {
+  color: #b00020;
+  min-height: 1.2em;
+}
+
 @media (min-width: 640px) {
   .lista-productos {
     display: grid;

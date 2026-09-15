@@ -1,32 +1,45 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
+import jwt from "jsonwebtoken";
 import { productRepository } from "../repositories/product.repository.js";
 import { cartRepository } from "../repositories/cart.repository.js";
 
 const router = Router();
 
-// Recupera el carrito del navegador (cookie) o crea uno nuevo si no existe
-async function getOrCreateCartId(req, res) {
-  const cookieCartId = req.cookies.cartId;
+// Decodifica el usuario logueado a partir de la cookie del JWT (o null si no hay sesión)
+function getCurrentUser(req) {
+  const token = req.cookies.token;
 
-  if (cookieCartId && isValidObjectId(cookieCartId) && (await cartRepository.getById(cookieCartId))) {
-    return cookieCartId;
+  if (!token) return null;
+
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return null;
   }
-
-  const cart = await cartRepository.create();
-  res.cookie("cartId", cart.id, { httpOnly: true });
-  return cart.id;
 }
 
-// Disponible en todas las vistas, para el link "Mi carrito" del nav
-router.use(async (req, res, next) => {
-  res.locals.cartId = await getOrCreateCartId(req, res);
+// Disponible en todas las vistas, para el nav y el botón de agregar al carrito
+router.use((req, res, next) => {
+  const user = getCurrentUser(req);
+  res.locals.user = user;
+  res.locals.cartId = user?.cart ?? null;
   next();
 });
 
 // Landing
 router.get("/", (req, res) => {
   res.render("home");
+});
+
+// Login
+router.get("/login", (req, res) => {
+  res.render("login");
+});
+
+// Registro
+router.get("/register", (req, res) => {
+  res.render("register");
 });
 
 // Vista en tiempo real

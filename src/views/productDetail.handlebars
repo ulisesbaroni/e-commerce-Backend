@@ -7,7 +7,11 @@
   <p>Categoría: {{product.category}}</p>
   <p>Stock: {{product.stock}}</p>
 
-  <button class="add-to-cart" data-cart-id="{{cartId}}" data-product-id="{{product.id}}">Agregar al carrito</button>
+  {{#if cartId}}
+    <button class="add-to-cart" data-cart-id="{{cartId}}" data-product-id="{{product.id}}">Agregar al carrito</button>
+  {{else}}
+    <a href="/login">Iniciá sesión para comprar</a>
+  {{/if}}
 </div>
 
 <script src="/js/cart.js"></script>
