@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import passport from "../config/passport.config.js";
+import UserDTO from "../dto/user.dto.js";
 
 const router = Router();
 
@@ -10,7 +11,7 @@ router.post("/register", (req, res, next) => {
     if (error) return res.status(500).json({ status: "error", message: "Error al registrar el usuario" });
     if (!user) return res.status(400).json({ status: "error", message: info?.message || "No se pudo registrar el usuario" });
 
-    res.status(201).json({ status: "success", payload: user });
+    res.status(201).json({ status: "success", payload: new UserDTO(user) });
   })(req, res, next);
 });
 
@@ -25,7 +26,7 @@ router.post("/login", (req, res, next) => {
     });
 
     res.cookie("token", token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
-    res.json({ status: "success", payload: user, token });
+    res.json({ status: "success", payload: new UserDTO(user), token });
   })(req, res, next);
 });
 
@@ -35,7 +36,7 @@ router.get("/current", (req, res, next) => {
     if (error) return res.status(500).json({ status: "error", message: "Error al validar la sesión" });
     if (!user) return res.status(401).json({ status: "error", message: info?.message || "No autorizado" });
 
-    res.json({ status: "success", payload: user });
+    res.json({ status: "success", payload: new UserDTO(user) });
   })(req, res, next);
 });
 
