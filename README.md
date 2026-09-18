@@ -1,56 +1,76 @@
 # E-commerce Backend
 
-Backend de un e-commerce hecho con Express y Mongoose (MongoDB Atlas), con vistas Handlebars. Incluye autenticación con Passport (estrategias local y JWT), roles (`admin` y `user`) y una arquitectura en capas: DAO, Repository y DTO.
+Backend de un e-commerce hecho con Express y Mongoose (MongoDB Atlas), con vistas Handlebars. Incluye autenticación con Passport (estrategias local y JWT), roles (`admin` y `user`), recuperación de contraseña por mail, carrito, compra con tickets y una arquitectura en capas: Repository, DAO y DTO.
 
-## Requisitos
+## Puesta en marcha
 
-- Node.js
-- Un cluster de MongoDB Atlas (o cualquier instancia de MongoDB accesible)
-
-## Instalación
+Requisitos: **Node.js 22.22 o superior** y una base MongoDB (Atlas).
 
 ```bash
 npm install
+npm run seed   # opcional: carga productos de ejemplo si el catálogo está vacío
+npm run dev    # levanta el servidor con nodemon (recarga automática) en http://localhost:8080
 ```
+
+`npm start` levanta el servidor con Node directamente.
+
+El repositorio incluye un archivo `.env` con las variables necesarias, apuntando a una **base de demostración descartable**. Para usar otra base o desplegar en otro lado, ver [Variables de entorno](#variables-de-entorno).
+
+**Cuentas para probar**
+
+- **Administrador:** `admin@ecommerce.com` / `Admin1234!` (se crea solo al primer arranque). Ve el menú "Administración" con productos, usuarios y ventas.
+- **Cliente:** registrarse desde `/register`. Con esa cuenta se prueba el carrito, la compra, "Mis compras" y "¿Olvidaste tu contraseña?".
+
+> Si la app no conecta a la base, el cluster gratuito de Atlas puede estar pausado por inactividad: hay que reanudarlo desde el panel de Atlas.
 
 ## Variables de entorno
 
-Copiar `.env.example` a `.env` y completar:
+Se leen del archivo `.env` (la plantilla es `.env.example`):
 
-```bash
-MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/ecommerce
-JWT_SECRET=<una_cadena_larga_y_aleatoria>
-ADMIN_EMAIL=admin@ecommerce.com
-ADMIN_PASSWORD=<contraseña_del_administrador>
-APP_URL=http://localhost:8080
+| Variable | Descripción |
+| -------- | ----------- |
+| `MONGODB_URI` | Connection string de MongoDB |
+| `JWT_SECRET` | Clave con la que se firman los tokens de sesión. Se puede generar con `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Administrador inicial: se crea solo la primera vez que arranca el servidor (si ya existe un usuario con ese email, no se toca) |
+| `APP_URL` | URL pública de la app; se usa para armar el enlace del mail de recuperación de contraseña |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Mail real (opcional) |
+
+**Mail.** Si no se define `SMTP_HOST`, los mails se envían a una cuenta de prueba de [Ethereal](https://ethereal.email): no llegan a ninguna casilla real, y el enlace para ver cada mail se imprime en la consola del servidor (`Vista previa del mail (Ethereal): ...`). Para enviar mails reales alcanza con completar las variables `SMTP_*` (por ejemplo `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587` y una contraseña de aplicación).
+
+## Arquitectura
+
+Cada capa solo conoce a la de abajo: **rutas / servicios → repositories → DAO → modelos**.
+
+```
+src/
+├── app.js            arranque de Express, middlewares y rutas
+├── db.js             conexión a MongoDB
+├── seed.js           productos de ejemplo (npm run seed)
+├── config/           estrategias de Passport, administrador inicial, política de contraseñas
+├── middlewares/      autorización por rol (sobre la estrategia "current") y dueño del carrito
+├── routes/           API (products, carts, users, tickets, sessions) y vistas
+├── services/         lógica de negocio que cruza varias entidades: compra, recuperación de contraseña, mail
+├── repositories/     capa de negocio sobre los DAO: es lo único que usan rutas y servicios
+├── dao/              acceso a datos: lo único que toca Mongoose
+├── models/           esquemas: Product, Cart, User, Ticket
+├── dto/              objetos de respuesta: UserDTO, TicketDTO (nunca exponen la contraseña)
+├── utils/            helpers de formato
+└── views/            plantillas Handlebars (layout y partials)
+public/               CSS y JS del navegador
 ```
 
-`APP_URL` es la URL pública de la app y se usa para armar el enlace del mail de recuperación de contraseña.
+## Roles y permisos
 
-**Mail (opcional).** Si no se define `SMTP_HOST`, los mails se envían a una cuenta de prueba de [Ethereal](https://ethereal.email): no llegan a ninguna casilla real, y el enlace para ver cada mail se imprime en la consola del servidor (`Vista previa del mail (Ethereal): ...`). Para enviar mails reales alcanza con agregar al `.env`:
+| Acción | Anónimo | `user` | `admin` |
+| ------ | :-----: | :----: | :-----: |
+| Ver catálogo y detalle de productos | Sí | Sí | Sí |
+| Registrarse, iniciar sesión, recuperar contraseña | Sí | — | — |
+| Agregar al carrito, comprar, ver sus propios tickets | — | Sí | — |
+| Crear, editar y eliminar productos | — | — | Sí |
+| Gestionar usuarios y cambiar roles | — | — | Sí |
+| Ver las ventas de todos los usuarios | — | — | Sí |
 
-```bash
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=<usuario_smtp>
-SMTP_PASS=<contraseña_o_app_password>
-MAIL_FROM="Tienda" <no-reply@tienda.com>
-```
-
-`ADMIN_EMAIL` y `ADMIN_PASSWORD` definen el administrador inicial: se crea solo la primera vez que arranca el servidor (si ya existe un usuario con ese email, no se toca). Con esa cuenta se ingresa a las funciones de administración.
-
-`JWT_SECRET` es la clave con la que se firman los tokens de sesión. Podés generar una con:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-## Comandos
-
-```bash
-npm run dev    # levanta el servidor con nodemon (recarga automática) en http://localhost:8080
-npm start      # levanta el servidor con Node directamente
-```
+Las cuentas `admin` no tienen carrito: gestionan el catálogo pero no compran. Cada `user` tiene su propio carrito, que se crea al registrarse, y solo puede operar sobre ese.
 
 ## Endpoints
 
@@ -66,7 +86,7 @@ npm start      # levanta el servidor con Node directamente
 
 ### Carritos — `/api/carts`
 
-Todas las rutas con `:cid` requieren estar logueado como `user` y operar sobre el propio carrito (el que se crea al registrarse); si no, responden 401 o 403.
+Todas las rutas con `:cid` requieren estar logueado como `user` y operar sobre el propio carrito; si no, responden 401 o 403.
 
 | Método | Ruta                        | Descripción                                       |
 | ------ | --------------------------- | -------------------------------------------------- |
@@ -114,19 +134,16 @@ Reglas: un admin no puede cambiar su propio rol ni eliminarse. Al pasar a `user`
 
 | Método | Ruta        | Descripción                                                              |
 | ------ | ----------- | -------------------------------------------------------------------------- |
-| POST   | `/register` | Crea un usuario (hashea la contraseña con bcrypt y le crea un carrito propio) |
-| POST   | `/login`    | Verifica credenciales y devuelve un JWT (también se setea en una cookie `token` httpOnly) |
-| GET    | `/current`  | Devuelve los datos del usuario logueado, a partir del JWT                 |
+| POST   | `/register` | Crea un usuario (hashea la contraseña con bcrypt y le crea un carrito propio). Body: `first_name`, `last_name`, `email`, `age`, `password` |
+| POST   | `/login`    | Verifica credenciales y devuelve un JWT (también se setea en una cookie `token` httpOnly). Body: `email`, `password` |
+| GET    | `/current`  | Devuelve los datos del usuario logueado (un `UserDTO`), a partir del JWT  |
 | POST   | `/logout`   | Cierra la sesión (borra la cookie `token`)                                |
 | POST   | `/forgot-password` | Envía por mail un enlace para restablecer la contraseña. Body: `email`. Responde igual exista o no el email |
 | POST   | `/reset-password`  | Establece la contraseña nueva. Body: `token` (del enlace) y `password` |
 
-Recuperación de contraseña: el enlace del mail vence a la hora, sirve una sola vez (al cambiar la contraseña deja de ser válido) y no se puede elegir la misma contraseña que se tenía. Las contraseñas deben tener al menos 6 caracteres.
+Las contraseñas deben tener al menos 6 caracteres. El JWT vence a la hora y se envía en la cookie `token` (automático tras el login); en Postman/Insomnia se puede copiar del campo `token` de la respuesta y mandarlo como `Cookie: token=<jwt>`.
 
-Body esperado para `/register`: `first_name`, `last_name`, `email`, `age`, `password`.
-Body esperado para `/login`: `email`, `password`.
-
-El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras el login) o copiarlo del campo `token` de la respuesta y mandarlo como `Cookie: token=<jwt>` en herramientas como Postman/Insomnia.
+**Recuperación de contraseña:** el enlace del mail vence a la hora, sirve una sola vez (al cambiar la contraseña deja de ser válido) y no se puede elegir la misma contraseña que se tenía.
 
 ## Vistas
 
@@ -137,18 +154,16 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 | `/register`            | Registro de usuarios                                             |
 | `/forgot-password`     | Pedir el mail de recuperación de contraseña                      |
 | `/reset-password/:token` | Elegir la contraseña nueva (es el enlace que llega por mail)   |
-| `/products`            | Lista paginada de productos, con botón de agregar al carrito (solo `user` logueado) |
+| `/products`            | Lista paginada de productos activos, con botón de agregar al carrito (solo `user` logueado) |
 | `/products/:pid`       | Detalle de un producto, con botón de agregar al carrito          |
 | `/carts/:cid`          | Mi carrito: cantidades, quitar, vaciar, total y "Finalizar compra" (solo su dueño) |
 | `/tickets`             | Mis compras (`user`)                                             |
 | `/tickets/:tid`        | Detalle de un ticket (su dueño o un `admin`)                     |
-| `/admin/tickets`       | Panel de administración: ventas de todos los usuarios (solo `admin`) |
 | `/admin/products`      | Panel de administración: listado con filtros, activar/desactivar y eliminar (solo `admin`) |
 | `/admin/products/new`  | Alta de producto (solo `admin`)                                  |
 | `/admin/products/:pid/edit` | Edición de producto (solo `admin`)                          |
 | `/admin/users`         | Panel de administración: listado de usuarios, cambio de rol y eliminación (solo `admin`) |
 | `/admin/users/:uid/edit` | Edición de un usuario (solo `admin`)                        |
+| `/admin/tickets`       | Panel de administración: ventas de todos los usuarios (solo `admin`) |
 
-La tienda (`/products`) solo muestra los productos activos; un producto desactivado desde el panel deja de ser visible para los clientes.
-
-Cada usuario tiene su propio carrito, que se crea al registrarse. Las cuentas `admin` no tienen carrito: gestionan el catálogo pero no compran.
+Un producto desactivado desde el panel deja de ser visible en la tienda.
