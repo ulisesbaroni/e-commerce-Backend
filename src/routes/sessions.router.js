@@ -2,6 +2,7 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 import passport from "../config/passport.config.js";
 import UserDTO from "../dto/user.dto.js";
+import { requestPasswordReset, resetPassword } from "../services/passwordReset.service.js";
 
 const router = Router();
 
@@ -41,6 +42,41 @@ router.get("/current", (req, res, next) => {
 
     res.json({ status: "success", payload: new UserDTO(user) });
   })(req, res, next);
+});
+
+// POST /api/sessions/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (typeof email !== "string" || !email.trim()) {
+    return res.status(400).json({ status: "error", message: "Ingresá tu email" });
+  }
+
+  // El envío va en segundo plano: así la respuesta tarda lo mismo exista o no el email
+  requestPasswordReset(email.trim()).catch((error) => {
+    console.error("No se pudo enviar el mail de recuperación:", error.message);
+  });
+
+  res.json({ status: "success", message: "Si el email está registrado, te enviamos un correo para restablecer tu contraseña" });
+});
+
+// POST /api/sessions/reset-password
+router.post("/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+
+  if (typeof token !== "string" || !token) {
+    return res.status(400).json({ status: "error", message: "Falta el token de recuperación" });
+  }
+
+  try {
+    const result = await resetPassword(token, password);
+
+    if (!result.ok) return res.status(result.status).json({ status: "error", message: result.message });
+
+    res.json({ status: "success", message: "Contraseña actualizada" });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error al restablecer la contraseña" });
+  }
 });
 
 // POST /api/sessions/logout

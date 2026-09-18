@@ -51,6 +51,11 @@ export default class UserRepository {
     return await this.dao.findByIdAndUpdate(id, changes, { returnDocument: "after", runValidators: true });
   }
 
+  // Recibe la contraseña ya hasheada; `update` no permite tocar este campo a propósito
+  async updatePassword(id, hashedPassword) {
+    return await this.dao.findByIdAndUpdate(id, { password: hashedPassword }, { returnDocument: "after" });
+  }
+
   async remove(id) {
     const user = await this.dao.findById(id);
 

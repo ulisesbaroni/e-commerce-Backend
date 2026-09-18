@@ -22,6 +22,19 @@ MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/ecommerce
 JWT_SECRET=<una_cadena_larga_y_aleatoria>
 ADMIN_EMAIL=admin@ecommerce.com
 ADMIN_PASSWORD=<contraseña_del_administrador>
+APP_URL=http://localhost:8080
+```
+
+`APP_URL` es la URL pública de la app y se usa para armar el enlace del mail de recuperación de contraseña.
+
+**Mail (opcional).** Si no se define `SMTP_HOST`, los mails se envían a una cuenta de prueba de [Ethereal](https://ethereal.email): no llegan a ninguna casilla real, y el enlace para ver cada mail se imprime en la consola del servidor (`Vista previa del mail (Ethereal): ...`). Para enviar mails reales alcanza con agregar al `.env`:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=<usuario_smtp>
+SMTP_PASS=<contraseña_o_app_password>
+MAIL_FROM="Tienda" <no-reply@tienda.com>
 ```
 
 `ADMIN_EMAIL` y `ADMIN_PASSWORD` definen el administrador inicial: se crea solo la primera vez que arranca el servidor (si ya existe un usuario con ese email, no se toca). Con esa cuenta se ingresa a las funciones de administración.
@@ -86,6 +99,10 @@ Reglas: un admin no puede cambiar su propio rol ni eliminarse. Al pasar a `user`
 | POST   | `/login`    | Verifica credenciales y devuelve un JWT (también se setea en una cookie `token` httpOnly) |
 | GET    | `/current`  | Devuelve los datos del usuario logueado, a partir del JWT                 |
 | POST   | `/logout`   | Cierra la sesión (borra la cookie `token`)                                |
+| POST   | `/forgot-password` | Envía por mail un enlace para restablecer la contraseña. Body: `email`. Responde igual exista o no el email |
+| POST   | `/reset-password`  | Establece la contraseña nueva. Body: `token` (del enlace) y `password` |
+
+Recuperación de contraseña: el enlace del mail vence a la hora, sirve una sola vez (al cambiar la contraseña deja de ser válido) y no se puede elegir la misma contraseña que se tenía. Las contraseñas deben tener al menos 6 caracteres.
 
 Body esperado para `/register`: `first_name`, `last_name`, `email`, `age`, `password`.
 Body esperado para `/login`: `email`, `password`.
@@ -99,6 +116,8 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 | `/`                    | Página de inicio                                                 |
 | `/login`               | Inicio de sesión                                                 |
 | `/register`            | Registro de usuarios                                             |
+| `/forgot-password`     | Pedir el mail de recuperación de contraseña                      |
+| `/reset-password/:token` | Elegir la contraseña nueva (es el enlace que llega por mail)   |
 | `/products`            | Lista paginada de productos, con botón de agregar al carrito (solo `user` logueado) |
 | `/products/:pid`       | Detalle de un producto, con botón de agregar al carrito          |
 | `/carts/:cid`          | Contenido de un carrito, con los productos poblados              |

@@ -5,6 +5,7 @@ import { productRepository } from "../repositories/product.repository.js";
 import { cartRepository } from "../repositories/cart.repository.js";
 import { userRepository } from "../repositories/user.repository.js";
 import UserDTO from "../dto/user.dto.js";
+import { getUserFromResetToken } from "../services/passwordReset.service.js";
 
 const router = Router();
 
@@ -45,7 +46,20 @@ router.get("/", (req, res) => {
 
 // Login
 router.get("/login", (req, res) => {
-  res.render("login");
+  res.render("login", { reset: req.query.reset === "1" });
+});
+
+// Recuperación de contraseña: pedir el enlace
+router.get("/forgot-password", (req, res) => {
+  res.render("forgotPassword");
+});
+
+// Recuperación de contraseña: elegir la contraseña nueva (el enlace del mail)
+router.get("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const user = await getUserFromResetToken(token);
+
+  res.render("resetPassword", { token: user ? token : null });
 });
 
 // Registro

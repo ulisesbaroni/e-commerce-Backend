@@ -4,6 +4,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import bcrypt from "bcrypt";
 import { userRepository } from "../repositories/user.repository.js";
 import { cartRepository } from "../repositories/cart.repository.js";
+import { MIN_PASSWORD_LENGTH } from "./password.config.js";
 
 function cookieExtractor(req) {
   return req?.cookies?.token || null;
@@ -17,6 +18,10 @@ passport.use(
 
       if (!first_name || !last_name || !email || !age || !password) {
         return done(null, false, { message: "Faltan campos obligatorios" });
+      }
+
+      if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+        return done(null, false, { message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres` });
       }
 
       const exists = await userRepository.findByEmail(email);

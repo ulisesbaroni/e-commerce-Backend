@@ -142,6 +142,11 @@ button,
   min-height: 1.2em;
 }
 
+.mensaje-ok {
+  color: #1b6b2f;
+  min-height: 1.2em;
+}
+
 @media (min-width: 640px) {
   .lista-productos {
     display: grid;

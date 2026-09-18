@@ -57,6 +57,56 @@ if (registerForm) {
   });
 }
 
+const forgotForm = document.getElementById("form-forgot");
+
+if (forgotForm) {
+  forgotForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const res = await fetch("/api/sessions/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: document.getElementById("email").value }),
+    });
+
+    const data = await res.json();
+    const mensaje = document.getElementById("mensaje");
+
+    mensaje.textContent = data.message;
+    mensaje.className = res.ok ? "mensaje-ok" : "mensaje-error";
+  });
+}
+
+const resetForm = document.getElementById("form-reset");
+
+if (resetForm) {
+  resetForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const mensaje = document.getElementById("mensaje");
+    const password = document.getElementById("password").value;
+
+    if (password !== document.getElementById("password-confirm").value) {
+      mensaje.textContent = "Las contraseñas no coinciden";
+      return;
+    }
+
+    const res = await fetch("/api/sessions/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: resetForm.dataset.token, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      mensaje.textContent = data.message;
+      return;
+    }
+
+    window.location.href = "/login?reset=1";
+  });
+}
+
 const logoutLink = document.getElementById("logout-link");
 
 if (logoutLink) {
