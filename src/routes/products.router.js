@@ -7,6 +7,10 @@ const router = Router();
 
 // Traduce errores de validación/casteo de Mongoose a un 400 con mensaje claro
 function handleWriteError(error, res) {
+  if (error.code === 11000) {
+    return res.status(409).json({ error: "Ya existe un producto con ese código" });
+  }
+
   if (error.name === "ValidationError" || error.name === "CastError") {
     return res.status(400).json({ error: "Datos inválidos: " + error.message });
   }

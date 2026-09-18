@@ -14,6 +14,9 @@
       {{#if user.cart}}
         <a href="/carts/{{user.cart}}">Mi carrito</a>
       {{/if}}
+      {{#if isAdmin}}
+        <a href="/admin/products">Administración</a>
+      {{/if}}
       <a href="#" id="logout-link">Cerrar sesión ({{user.email}})</a>
     {{else}}
       <a href="/login">Ingresar</a>

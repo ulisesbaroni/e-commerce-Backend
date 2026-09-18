@@ -1,0 +1,75 @@
+<div class="admin">
+  <div class="admin-encabezado">
+    <h1>Administración de productos</h1>
+    <a class="boton" href="/admin/products/new">Nuevo producto</a>
+  </div>
+
+  <form class="filtros" method="get" action="/admin/products">
+    <input type="text" name="query" placeholder="Categoría o estado (true/false)" value="{{query}}" />
+    <select name="sort">
+      <option value="">Sin orden</option>
+      <option value="asc">Precio: menor a mayor</option>
+      <option value="desc">Precio: mayor a menor</option>
+    </select>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  {{#if products.length}}
+    <table class="tabla-admin">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Código</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each products}}
+          <tr>
+            <td data-label="Producto"><strong>{{this.title}}</strong></td>
+            <td data-label="Código">{{this.code}}</td>
+            <td data-label="Categoría">{{this.category}}</td>
+            <td data-label="Precio">${{this.price}}</td>
+            <td data-label="Stock">{{this.stock}}</td>
+            <td data-label="Estado">
+              {{#if this.status}}
+                <span class="estado estado-activo">Activo</span>
+              {{else}}
+                <span class="estado estado-inactivo">Inactivo</span>
+              {{/if}}
+            </td>
+            <td data-label="Acciones" class="acciones">
+              <a class="boton boton-chico" href="/admin/products/{{this.id}}/edit">Editar</a>
+              <button class="btn-estado boton-chico" data-id="{{this.id}}" data-status="{{this.status}}">
+                {{#if this.status}}Desactivar{{else}}Activar{{/if}}
+              </button>
+              <button class="btn-eliminar boton-chico boton-peligro" data-id="{{this.id}}" data-title="{{this.title}}">Eliminar</button>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>No hay productos para mostrar.</p>
+  {{/if}}
+
+  <nav class="paginacion">
+    {{#if hasPrevPage}}
+      <a href="/admin/products?page={{prevPage}}&query={{query}}&sort={{sort}}">Anterior</a>
+    {{else}}
+      <span></span>
+    {{/if}}
+
+    <span>Página {{page}} de {{totalPages}}</span>
+
+    {{#if hasNextPage}}
+      <a href="/admin/products?page={{nextPage}}&query={{query}}&sort={{sort}}">Siguiente</a>
+    {{/if}}
+  </nav>
+</div>
+
+<script src="/js/admin.js"></script>

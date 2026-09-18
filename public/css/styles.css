@@ -89,7 +89,8 @@ a {
 }
 
 button,
-.add-to-cart {
+.add-to-cart,
+.boton {
   width: 100%;
   padding: 0.75rem;
   border: none;
@@ -97,6 +98,8 @@ button,
   background: #1a1a1a;
   color: #fff;
   font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .filtros {
@@ -150,7 +153,170 @@ button,
   }
 
   button,
-  .add-to-cart {
+  .add-to-cart,
+  .boton {
     width: auto;
+  }
+}
+
+.boton {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.boton-chico {
+  width: auto;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.boton-peligro {
+  background: #b00020;
+}
+
+.admin,
+.form-admin {
+  padding: 1rem;
+}
+
+.admin-encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-encabezado h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.tabla-admin thead {
+  display: none;
+}
+
+.tabla-admin tr {
+  display: block;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+}
+
+.tabla-admin td {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.3rem 0.4rem;
+}
+
+.tabla-admin td::before {
+  content: attr(data-label);
+  font-weight: 600;
+  color: #555;
+}
+
+.tabla-admin .acciones {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
+.tabla-admin .acciones::before {
+  display: none;
+}
+
+.estado {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.estado-activo {
+  background: #e3f4e6;
+  color: #1b6b2f;
+}
+
+.estado-inactivo {
+  background: #eee;
+  color: #555;
+}
+
+.form-admin {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.form-admin label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 600;
+}
+
+.form-admin input[type="text"],
+.form-admin input[type="number"],
+.form-admin textarea {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-admin .check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-weight: 400;
+}
+
+.form-admin button[type="submit"] {
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .admin-encabezado {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tabla-admin thead {
+    display: table-header-group;
+  }
+
+  .tabla-admin tr {
+    display: table-row;
+    background: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tabla-admin th,
+  .tabla-admin td {
+    display: table-cell;
+    text-align: left;
+    padding: 0.6rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .tabla-admin td::before {
+    content: none;
+  }
+
+  .tabla-admin .acciones {
+    white-space: nowrap;
   }
 }

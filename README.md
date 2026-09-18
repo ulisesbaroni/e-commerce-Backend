@@ -89,5 +89,10 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 | `/products`            | Lista paginada de productos, con botón de agregar al carrito (solo `user` logueado) |
 | `/products/:pid`       | Detalle de un producto, con botón de agregar al carrito          |
 | `/carts/:cid`          | Contenido de un carrito, con los productos poblados              |
+| `/admin/products`      | Panel de administración: listado con filtros, activar/desactivar y eliminar (solo `admin`) |
+| `/admin/products/new`  | Alta de producto (solo `admin`)                                  |
+| `/admin/products/:pid/edit` | Edición de producto (solo `admin`)                          |
+
+La tienda (`/products`) solo muestra los productos activos; un producto desactivado desde el panel deja de ser visible para los clientes.
 
 Cada usuario tiene su propio carrito, que se crea al registrarse. Las cuentas `admin` no tienen carrito: gestionan el catálogo pero no compran.

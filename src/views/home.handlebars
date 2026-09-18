@@ -13,12 +13,19 @@
         <p>Revisá lo que agregaste</p>
       </a>
     {{else}}
-      {{#unless user}}
-        <a class="landing-card" href="/register">
-          <h2>Crear cuenta</h2>
-          <p>Registrate para empezar a comprar</p>
+      {{#if isAdmin}}
+        <a class="landing-card" href="/admin/products">
+          <h2>Administración</h2>
+          <p>Gestioná el catálogo de productos</p>
         </a>
-      {{/unless}}
+      {{else}}
+        {{#unless user}}
+          <a class="landing-card" href="/register">
+            <h2>Crear cuenta</h2>
+            <p>Registrate para empezar a comprar</p>
+          </a>
+        {{/unless}}
+      {{/if}}
     {{/if}}
   </div>
 </div>

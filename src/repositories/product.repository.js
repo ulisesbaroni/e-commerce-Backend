@@ -9,7 +9,7 @@ export default class ProductRepository {
     return await this.dao.find();
   }
 
-  async getPaginated({ limit = 10, page = 1, query, sort }) {
+  async getPaginated({ limit = 10, page = 1, query, sort, onlyActive = false }) {
     const filter = {};
 
     if (query === "true" || query === "false") {
@@ -17,6 +17,9 @@ export default class ProductRepository {
     } else if (query) {
       filter.category = query;
     }
+
+    // La tienda solo muestra productos activos
+    if (onlyActive) filter.status = true;
 
     const options = { limit: Number(limit), page: Number(page) };
 
