@@ -65,6 +65,19 @@ Todas las rutas con `:cid` requieren estar logueado como `user` y operar sobre e
 | PUT    | `/:cid/products/:pid`       | Actualizar la cantidad de un producto               |
 | DELETE | `/:cid`                     | Vaciar el carrito                                  |
 
+### Usuarios — `/api/users`
+
+Todas las rutas son solo para `admin`. Las respuestas usan un DTO (nunca incluyen la contraseña).
+
+| Método | Ruta     | Descripción                                                                 |
+| ------ | -------- | ---------------------------------------------------------------------------- |
+| GET    | `/`      | Lista paginada. Query params: `limit`, `page`, `query` (rol `admin`/`user` o texto del email) |
+| GET    | `/:uid`  | Obtener un usuario por id                                                    |
+| PUT    | `/:uid`  | Actualizar `first_name`, `last_name`, `age`, `email` y/o `role`               |
+| DELETE | `/:uid`  | Eliminar un usuario y su carrito                                              |
+
+Reglas: un admin no puede cambiar su propio rol ni eliminarse. Al pasar a `user` un usuario sin carrito (por ejemplo, un admin), se le crea uno.
+
 ### Sesiones — `/api/sessions`
 
 | Método | Ruta        | Descripción                                                              |
@@ -92,6 +105,8 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 | `/admin/products`      | Panel de administración: listado con filtros, activar/desactivar y eliminar (solo `admin`) |
 | `/admin/products/new`  | Alta de producto (solo `admin`)                                  |
 | `/admin/products/:pid/edit` | Edición de producto (solo `admin`)                          |
+| `/admin/users`         | Panel de administración: listado de usuarios, cambio de rol y eliminación (solo `admin`) |
+| `/admin/users/:uid/edit` | Edición de un usuario (solo `admin`)                        |
 
 La tienda (`/products`) solo muestra los productos activos; un producto desactivado desde el panel deja de ser visible para los clientes.
 

@@ -17,6 +17,11 @@ export default class CartRepository {
     return await this.dao.findByIdPopulated(id);
   }
 
+  async remove(id) {
+    const deleted = await this.dao.findByIdAndDelete(id);
+    return Boolean(deleted);
+  }
+
   async addProduct(cartId, productId) {
     const cart = await this.dao.findById(cartId);
 

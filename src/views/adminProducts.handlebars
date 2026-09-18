@@ -4,6 +4,8 @@
     <a class="boton" href="/admin/products/new">Nuevo producto</a>
   </div>
 
+  {{> adminNav}}
+
   <form class="filtros" method="get" action="/admin/products">
     <input type="text" name="query" placeholder="Categoría o estado (true/false)" value="{{query}}" />
     <select name="sort">

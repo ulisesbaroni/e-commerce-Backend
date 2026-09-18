@@ -12,4 +12,8 @@ export default class CartDAO {
   findByIdPopulated(id) {
     return Cart.findById(id).populate("products.product");
   }
+
+  findByIdAndDelete(id) {
+    return Cart.findByIdAndDelete(id);
+  }
 }

@@ -21,7 +21,10 @@ router.post("/login", (req, res, next) => {
     if (error) return res.status(500).json({ status: "error", message: "Error al iniciar sesión" });
     if (!user) return res.status(401).json({ status: "error", message: info?.message || "Credenciales inválidas" });
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role, cart: user.cart }, process.env.JWT_SECRET, {
+    // Solo los clientes tienen carrito activo; un admin no compra
+    const cart = user.role === "user" ? user.cart : undefined;
+
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role, cart }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 

@@ -3,6 +3,8 @@ import { isValidObjectId } from "mongoose";
 import jwt from "jsonwebtoken";
 import { productRepository } from "../repositories/product.repository.js";
 import { cartRepository } from "../repositories/cart.repository.js";
+import { userRepository } from "../repositories/user.repository.js";
+import UserDTO from "../dto/user.dto.js";
 
 const router = Router();
 
@@ -90,6 +92,7 @@ router.get("/admin/products", requireAdmin, async (req, res) => {
   const result = await productRepository.getPaginated({ limit, page, query, sort });
 
   res.render("adminProducts", {
+    adminProducts: true,
     products: result.docs.map((p) => p.toJSON()),
     query,
     sort,
@@ -120,6 +123,45 @@ router.get("/admin/products/:pid/edit", requireAdmin, async (req, res) => {
   res.render("adminProductForm", {
     product: product.toJSON(),
     thumbnailsText: product.thumbnails.join("\n"),
+  });
+});
+
+// Panel de administración: listado de usuarios
+router.get("/admin/users", requireAdmin, async (req, res) => {
+  const { limit = 10, page = 1, query } = req.query;
+
+  const result = await userRepository.getPaginated({ limit, page, query });
+
+  res.render("adminUsers", {
+    adminUsers: true,
+    users: result.docs.map((user) => ({
+      ...new UserDTO(user),
+      isAdminRole: user.role === "admin",
+      isSelf: user.id === res.locals.user.id,
+    })),
+    query,
+    page: result.page,
+    totalPages: result.totalPages,
+    hasPrevPage: result.hasPrevPage,
+    hasNextPage: result.hasNextPage,
+    prevPage: result.prevPage,
+    nextPage: result.nextPage,
+  });
+});
+
+// Panel de administración: edición de usuario
+router.get("/admin/users/:uid/edit", requireAdmin, async (req, res) => {
+  const { uid } = req.params;
+
+  if (!isValidObjectId(uid)) return res.status(400).send("ID inválido");
+
+  const user = await userRepository.findById(uid);
+
+  if (!user) return res.status(404).send("Usuario no encontrado");
+
+  res.render("adminUserForm", {
+    editUser: { ...new UserDTO(user), isAdminRole: user.role === "admin" },
+    isSelf: user.id === res.locals.user.id,
   });
 });
 

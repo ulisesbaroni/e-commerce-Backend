@@ -1,0 +1,69 @@
+<div class="admin">
+  <div class="admin-encabezado">
+    <h1>Administración de usuarios</h1>
+  </div>
+
+  {{> adminNav}}
+
+  <form class="filtros" method="get" action="/admin/users">
+    <input type="text" name="query" placeholder="Email, o rol (admin / user)" value="{{query}}" />
+    <button type="submit">Buscar</button>
+  </form>
+
+  {{#if users.length}}
+    <table class="tabla-admin">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Edad</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each users}}
+          <tr>
+            <td data-label="Nombre"><strong>{{this.first_name}} {{this.last_name}}</strong>{{#if this.isSelf}} (vos){{/if}}</td>
+            <td data-label="Email">{{this.email}}</td>
+            <td data-label="Edad">{{this.age}}</td>
+            <td data-label="Rol">
+              {{#if this.isAdminRole}}
+                <span class="estado rol-admin">Admin</span>
+              {{else}}
+                <span class="estado estado-inactivo">Usuario</span>
+              {{/if}}
+            </td>
+            <td data-label="Acciones" class="acciones">
+              <a class="boton boton-chico" href="/admin/users/{{this.id}}/edit">Editar</a>
+              {{#unless this.isSelf}}
+                <button class="btn-rol boton-chico" data-id="{{this.id}}" data-email="{{this.email}}" data-role="{{this.role}}">
+                  {{#if this.isAdminRole}}Pasar a usuario{{else}}Hacer admin{{/if}}
+                </button>
+                <button class="btn-eliminar-usuario boton-chico boton-peligro" data-id="{{this.id}}" data-email="{{this.email}}">Eliminar</button>
+              {{/unless}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>No hay usuarios para mostrar.</p>
+  {{/if}}
+
+  <nav class="paginacion">
+    {{#if hasPrevPage}}
+      <a href="/admin/users?page={{prevPage}}&query={{query}}">Anterior</a>
+    {{else}}
+      <span></span>
+    {{/if}}
+
+    <span>Página {{page}} de {{totalPages}}</span>
+
+    {{#if hasNextPage}}
+      <a href="/admin/users?page={{nextPage}}&query={{query}}">Siguiente</a>
+    {{/if}}
+  </nav>
+</div>
+
+<script src="/js/admin.js"></script>

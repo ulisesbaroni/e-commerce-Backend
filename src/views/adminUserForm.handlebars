@@ -1,0 +1,34 @@
+<div class="form-admin">
+  <a href="/admin/users">← Volver al listado</a>
+
+  <h1>Editar usuario</h1>
+
+  <form id="form-usuario" data-user-id="{{editUser.id}}">
+    <label for="first_name">Nombre</label>
+    <input type="text" id="first_name" value="{{editUser.first_name}}" required />
+
+    <label for="last_name">Apellido</label>
+    <input type="text" id="last_name" value="{{editUser.last_name}}" required />
+
+    <label for="email">Email</label>
+    <input type="text" id="email" value="{{editUser.email}}" required />
+
+    <label for="age">Edad</label>
+    <input type="number" id="age" min="0" step="1" value="{{editUser.age}}" required />
+
+    <label for="role">Rol</label>
+    <select id="role" {{#if isSelf}}disabled{{/if}}>
+      <option value="user" {{#unless editUser.isAdminRole}}selected{{/unless}}>Usuario</option>
+      <option value="admin" {{#if editUser.isAdminRole}}selected{{/if}}>Admin</option>
+    </select>
+    {{#if isSelf}}
+      <small>No podés cambiar tu propio rol.</small>
+    {{/if}}
+
+    <button type="submit">Guardar</button>
+  </form>
+
+  <p id="mensaje" class="mensaje-error"></p>
+</div>
+
+<script src="/js/admin.js"></script>

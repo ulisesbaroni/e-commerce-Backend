@@ -250,6 +250,48 @@ button,
   color: #555;
 }
 
+.rol-admin {
+  background: #e3ecfb;
+  color: #1a4fa0;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-tabs a {
+  padding: 0.5rem 0.25rem;
+  text-decoration: none;
+  color: #555;
+  border-bottom: 2px solid transparent;
+}
+
+.admin-tabs a.activa {
+  color: #1a1a1a;
+  font-weight: 600;
+  border-bottom-color: #1a1a1a;
+}
+
+.form-admin select {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.form-admin small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #555;
+}
+
 .form-admin {
   max-width: 480px;
   margin: 0 auto;
