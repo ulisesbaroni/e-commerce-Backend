@@ -7,9 +7,18 @@
       <h2>Ver productos</h2>
       <p>Catálogo completo, con filtros y paginación</p>
     </a>
-    <a class="landing-card" href="/realtimeproducts">
-      <h2>Demo en tiempo real</h2>
-      <p>Alta y baja de productos vía WebSockets</p>
-    </a>
+    {{#if user.cart}}
+      <a class="landing-card" href="/carts/{{user.cart}}">
+        <h2>Mi carrito</h2>
+        <p>Revisá lo que agregaste</p>
+      </a>
+    {{else}}
+      {{#unless user}}
+        <a class="landing-card" href="/register">
+          <h2>Crear cuenta</h2>
+          <p>Registrate para empezar a comprar</p>
+        </a>
+      {{/unless}}
+    {{/if}}
   </div>
 </div>

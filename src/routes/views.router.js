@@ -42,12 +42,6 @@ router.get("/register", (req, res) => {
   res.render("register");
 });
 
-// Vista en tiempo real
-router.get("/realtimeproducts", async (req, res) => {
-  const products = await productRepository.getAll();
-  res.render("realTimeProducts", { products: products.map((p) => p.toJSON()) });
-});
-
 // Listado paginado de productos
 router.get("/products", async (req, res) => {
   const { limit = 10, page = 1, query, sort } = req.query;

@@ -1,6 +1,6 @@
 # E-commerce Backend
 
-Backend de un e-commerce hecho con Express, Mongoose (MongoDB Atlas) y Socket.IO, con vistas Handlebars. Incluye autenticación de usuarios con Passport (estrategias local y JWT).
+Backend de un e-commerce hecho con Express y Mongoose (MongoDB Atlas), con vistas Handlebars. Incluye autenticación con Passport (estrategias local y JWT), roles (`admin` y `user`) y una arquitectura en capas: DAO, Repository y DTO.
 
 ## Requisitos
 
@@ -20,7 +20,11 @@ Copiar `.env.example` a `.env` y completar:
 ```bash
 MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/ecommerce
 JWT_SECRET=<una_cadena_larga_y_aleatoria>
+ADMIN_EMAIL=admin@ecommerce.com
+ADMIN_PASSWORD=<contraseña_del_administrador>
 ```
+
+`ADMIN_EMAIL` y `ADMIN_PASSWORD` definen el administrador inicial: se crea solo la primera vez que arranca el servidor (si ya existe un usuario con ese email, no se toca). Con esa cuenta se ingresa a las funciones de administración.
 
 `JWT_SECRET` es la clave con la que se firman los tokens de sesión. Podés generar una con:
 
@@ -43,11 +47,13 @@ npm start      # levanta el servidor con Node directamente
 | ------ | ------------ | --------------------------------------------------------------- |
 | GET    | `/`          | Lista paginada. Query params: `limit`, `page`, `query` (categoría o `true`/`false` por disponibilidad), `sort` (`asc`/`desc` por precio) |
 | GET    | `/:pid`      | Obtener un producto por id                                      |
-| POST   | `/`          | Crear un producto                                                |
-| PUT    | `/:pid`      | Actualizar un producto                                          |
-| DELETE | `/:pid`      | Eliminar un producto                                             |
+| POST   | `/`          | Crear un producto (solo `admin`)                                 |
+| PUT    | `/:pid`      | Actualizar un producto (solo `admin`)                           |
+| DELETE | `/:pid`      | Eliminar un producto (solo `admin`)                              |
 
 ### Carritos — `/api/carts`
+
+Todas las rutas con `:cid` requieren estar logueado como `user` y operar sobre el propio carrito (el que se crea al registrarse); si no, responden 401 o 403.
 
 | Método | Ruta                        | Descripción                                       |
 | ------ | --------------------------- | -------------------------------------------------- |
@@ -66,6 +72,7 @@ npm start      # levanta el servidor con Node directamente
 | POST   | `/register` | Crea un usuario (hashea la contraseña con bcrypt y le crea un carrito propio) |
 | POST   | `/login`    | Verifica credenciales y devuelve un JWT (también se setea en una cookie `token` httpOnly) |
 | GET    | `/current`  | Devuelve los datos del usuario logueado, a partir del JWT                 |
+| POST   | `/logout`   | Cierra la sesión (borra la cookie `token`)                                |
 
 Body esperado para `/register`: `first_name`, `last_name`, `email`, `age`, `password`.
 Body esperado para `/login`: `email`, `password`.
@@ -76,10 +83,11 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 
 | Ruta                 | Descripción                                                    |
 | --------------------- | --------------------------------------------------------------- |
-| `/`                    | Lista estática de productos                                     |
-| `/realtimeproducts`    | Lista de productos en tiempo real (crear/eliminar vía Socket.IO) |
-| `/products`            | Lista paginada de productos, con botón de agregar al carrito     |
+| `/`                    | Página de inicio                                                 |
+| `/login`               | Inicio de sesión                                                 |
+| `/register`            | Registro de usuarios                                             |
+| `/products`            | Lista paginada de productos, con botón de agregar al carrito (solo `user` logueado) |
 | `/products/:pid`       | Detalle de un producto, con botón de agregar al carrito          |
 | `/carts/:cid`          | Contenido de un carrito, con los productos poblados              |
 
-El carrito asociado al navegador se guarda en una cookie (`cartId`) y se crea automáticamente en la primera visita a `/products` o `/products/:pid`.
+Cada usuario tiene su propio carrito, que se crea al registrarse. Las cuentas `admin` no tienen carrito: gestionan el catálogo pero no compran.

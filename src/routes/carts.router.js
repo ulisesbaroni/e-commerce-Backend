@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
 import { cartRepository } from "../repositories/cart.repository.js";
+import { authorization, ownCart } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /api/carts/:cid
-router.get("/:cid", async (req, res) => {
+router.get("/:cid", authorization("user"), ownCart, async (req, res) => {
   try {
     const id = req.params.cid;
 
@@ -32,7 +33,7 @@ router.get("/:cid", async (req, res) => {
 });
 
 // POST /api/carts/:cid/product/:pid
-router.post("/:cid/product/:pid", async (req, res) => {
+router.post("/:cid/product/:pid", authorization("user"), ownCart, async (req, res) => {
   try {
     const cartId = req.params.cid;
     const productId = req.params.pid;
@@ -52,7 +53,7 @@ router.post("/:cid/product/:pid", async (req, res) => {
 });
 
 // DELETE /api/carts/:cid/products/:pid
-router.delete("/:cid/products/:pid", async (req, res) => {
+router.delete("/:cid/products/:pid", authorization("user"), ownCart, async (req, res) => {
   try {
     const cartId = req.params.cid;
     const productId = req.params.pid;
@@ -72,7 +73,7 @@ router.delete("/:cid/products/:pid", async (req, res) => {
 });
 
 // PUT /api/carts/:cid
-router.put("/:cid", async (req, res) => {
+router.put("/:cid", authorization("user"), ownCart, async (req, res) => {
   try {
     const cartId = req.params.cid;
     const { products } = req.body;
@@ -100,7 +101,7 @@ router.put("/:cid", async (req, res) => {
 });
 
 // PUT /api/carts/:cid/products/:pid
-router.put("/:cid/products/:pid", async (req, res) => {
+router.put("/:cid/products/:pid", authorization("user"), ownCart, async (req, res) => {
   try {
     const cartId = req.params.cid;
     const productId = req.params.pid;
@@ -125,7 +126,7 @@ router.put("/:cid/products/:pid", async (req, res) => {
 });
 
 // DELETE /api/carts/:cid
-router.delete("/:cid", async (req, res) => {
+router.delete("/:cid", authorization("user"), ownCart, async (req, res) => {
   try {
     const cartId = req.params.cid;
 

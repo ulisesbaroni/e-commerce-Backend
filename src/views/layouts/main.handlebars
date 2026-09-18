@@ -10,9 +10,10 @@
   <nav class="nav-principal">
     <a href="/">Inicio</a>
     <a href="/products">Productos</a>
-    <a href="/realtimeproducts">Tiempo real</a>
     {{#if user}}
-      <a href="/carts/{{user.cart}}">Mi carrito</a>
+      {{#if user.cart}}
+        <a href="/carts/{{user.cart}}">Mi carrito</a>
+      {{/if}}
       <a href="#" id="logout-link">Cerrar sesión ({{user.email}})</a>
     {{else}}
       <a href="/login">Ingresar</a>

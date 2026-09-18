@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
 import { productRepository } from "../repositories/product.repository.js";
+import { authorization } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.get("/:pid", async (req, res) => {
 });
 
 // POST /api/products
-router.post("/", async (req, res) => {
+router.post("/", authorization("admin"), async (req, res) => {
   try {
     const { title, description, code, price, status, stock, category, thumbnails } = req.body;
 
@@ -78,7 +79,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /api/products/:pid
-router.put("/:pid", async (req, res) => {
+router.put("/:pid", authorization("admin"), async (req, res) => {
   try {
     const id = req.params.pid;
 
@@ -95,7 +96,7 @@ router.put("/:pid", async (req, res) => {
 });
 
 // DELETE /api/products/:pid
-router.delete("/:pid", async (req, res) => {
+router.delete("/:pid", authorization("admin"), async (req, res) => {
   try {
     const id = req.params.pid;
 

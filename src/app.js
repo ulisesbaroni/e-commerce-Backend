@@ -1,12 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
-import { createServer } from "http";
-import { Server } from "socket.io";
 import { engine } from "express-handlebars";
-import { initSocket } from "./socket.js";
 import { connectDB } from "./db.js";
 import passport from "./config/passport.config.js";
+import { ensureAdminUser } from "./config/admin.config.js";
 
 import productsRouter from "./routes/products.router.js";
 import cartsRouter from "./routes/carts.router.js";
@@ -14,8 +12,6 @@ import sessionsRouter from "./routes/sessions.router.js";
 import viewsRouter from "./routes/views.router.js";
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer);
 
 const PORT = 8080;
 
@@ -48,11 +44,10 @@ app.use("/api/sessions", sessionsRouter);
 // Rutas vistas
 app.use("/", viewsRouter);
 
-// Socket.IO
-initSocket(io);
+connectDB().then(async () => {
+  await ensureAdminUser();
 
-connectDB().then(() => {
-  httpServer.listen(PORT, () => {
+  app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });
 });
