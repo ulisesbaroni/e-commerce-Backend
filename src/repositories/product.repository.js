@@ -34,6 +34,24 @@ export default class ProductRepository {
     return await this.dao.findById(id);
   }
 
+  async getByIds(ids) {
+    return await this.dao.find({ _id: { $in: ids } });
+  }
+
+  // Descuenta stock en una sola operación atómica: devuelve null si el producto no está
+  // activo o no alcanza el stock, así dos compras simultáneas nunca venden de más
+  async reserveStock(id, quantity) {
+    return await this.dao.findOneAndUpdate(
+      { _id: id, status: true, stock: { $gte: quantity } },
+      { $inc: { stock: -quantity } },
+      { returnDocument: "after" }
+    );
+  }
+
+  async restoreStock(id, quantity) {
+    return await this.dao.findByIdAndUpdate(id, { $inc: { stock: quantity } }, { returnDocument: "after" });
+  }
+
   async create(data) {
     return await this.dao.create({
       title: data.title,

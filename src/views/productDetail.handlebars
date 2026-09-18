@@ -8,7 +8,11 @@
   <p>Stock: {{product.stock}}</p>
 
   {{#if cartId}}
-    <button class="add-to-cart" data-cart-id="{{cartId}}" data-product-id="{{product.id}}">Agregar al carrito</button>
+    {{#if product.stock}}
+      <button class="add-to-cart" data-cart-id="{{cartId}}" data-product-id="{{product.id}}">Agregar al carrito</button>
+    {{else}}
+      <span class="sin-stock">Sin stock</span>
+    {{/if}}
   {{else}}
     {{#unless user}}
       <a href="/login">Iniciá sesión para comprar</a>

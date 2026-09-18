@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { isValidObjectId } from "mongoose";
 import { cartRepository } from "../repositories/cart.repository.js";
+import { productRepository } from "../repositories/product.repository.js";
 import { authorization, ownCart } from "../middlewares/authorization.middleware.js";
+import { purchaseCart } from "../services/purchase.service.js";
+import TicketDTO from "../dto/ticket.dto.js";
 
 const router = Router();
 
@@ -42,6 +45,11 @@ router.post("/:cid/product/:pid", authorization("user"), ownCart, async (req, re
       return res.status(400).json({ error: "ID inválido" });
     }
 
+    const product = await productRepository.getById(productId);
+
+    if (!product) return res.status(404).json({ error: "Producto no encontrado" });
+    if (!product.status) return res.status(409).json({ error: "El producto no está disponible" });
+
     const cart = await cartRepository.addProduct(cartId, productId);
 
     if (!cart) return res.status(404).json({ error: "Carrito no encontrado" });
@@ -49,6 +57,24 @@ router.post("/:cid/product/:pid", authorization("user"), ownCart, async (req, re
     res.json(cart);
   } catch (error) {
     res.status(500).json({ error: "Error al agregar producto al carrito" });
+  }
+});
+
+// POST /api/carts/:cid/purchase
+router.post("/:cid/purchase", authorization("user"), ownCart, async (req, res) => {
+  try {
+    const result = await purchaseCart(req.params.cid, req.user);
+
+    if (!result.ok) {
+      return res.status(result.status).json({ status: "error", message: result.message, notPurchased: result.notPurchased });
+    }
+
+    res.json({
+      status: "success",
+      payload: { ticket: new TicketDTO(result.ticket), complete: result.complete, notPurchased: result.notPurchased },
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error al procesar la compra" });
   }
 });
 

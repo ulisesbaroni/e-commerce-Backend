@@ -1,0 +1,38 @@
+<div class="ticket">
+  <h1>{{#if partial}}Compra parcial{{else}}Tu compra{{/if}}</h1>
+
+  {{#if partial}}
+    <p class="aviso-parcial">
+      Algunos productos no tenían stock suficiente o dejaron de estar disponibles: siguen en tu carrito.
+      <a href="/carts/{{cartId}}">Ver mi carrito</a>
+    </p>
+  {{/if}}
+
+  <dl class="ticket-datos">
+    <dt>Código</dt>
+    <dd>{{ticket.code}}</dd>
+    <dt>Fecha</dt>
+    <dd>{{ticket.date}}</dd>
+    <dt>Comprador</dt>
+    <dd>{{ticket.purchaser}}</dd>
+  </dl>
+
+  <ul class="ticket-items">
+    {{#each ticket.products}}
+      <li>
+        <span>{{this.title}} <small>x{{this.quantity}} · ${{this.price}} c/u</small></span>
+        <strong>${{this.subtotal}}</strong>
+      </li>
+    {{/each}}
+  </ul>
+
+  <p class="total">Total: <strong>${{ticket.amount}}</strong></p>
+
+  <p>
+    {{#if isAdmin}}
+      <a href="/admin/tickets">← Volver a las ventas</a>
+    {{else}}
+      <a href="/tickets">← Mis compras</a> · <a href="/products">Seguir comprando</a>
+    {{/if}}
+  </p>
+</div>

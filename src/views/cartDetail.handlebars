@@ -1,17 +1,50 @@
-<div class="detalle-carrito">
+<div class="detalle-carrito" id="carrito" data-cart-id="{{cartId}}">
   <h1>Mi carrito</h1>
 
-  {{#if cart.products.length}}
-    <ul class="lista-productos">
-      {{#each cart.products}}
-        <li>
-          <strong>{{this.product.title}}</strong> — ${{this.product.price}} x {{this.quantity}}
+  {{#if isEmpty}}
+    <p>Tu carrito está vacío.</p>
+    <a class="boton" href="/products">Ver productos</a>
+  {{else}}
+    <ul class="lista-carrito">
+      {{#each items}}
+        <li class="item-carrito {{#unless this.purchasable}}item-no-disponible{{/unless}}">
+          <div class="item-info">
+            <strong>{{this.title}}</strong>
+            {{#unless this.unavailable}}<span>${{this.price}} c/u</span>{{/unless}}
+            {{#if this.unavailable}}
+              <span class="aviso">Este producto ya no está disponible</span>
+            {{/if}}
+            {{#if this.lackOfStock}}
+              <span class="aviso">Stock insuficiente: quedan {{this.stock}}</span>
+            {{/if}}
+          </div>
+
+          <div class="item-acciones">
+            {{#unless this.unavailable}}
+              <div class="cantidad">
+                <button class="btn-cantidad boton-chico" data-id="{{this.productId}}" data-quantity="{{this.quantityMinus}}" {{#unless this.canDecrease}}disabled{{/unless}} aria-label="Restar uno">−</button>
+                <span>{{this.quantity}}</span>
+                <button class="btn-cantidad boton-chico" data-id="{{this.productId}}" data-quantity="{{this.quantityPlus}}" {{#unless this.canIncrease}}disabled{{/unless}} aria-label="Sumar uno">+</button>
+              </div>
+              <strong class="subtotal">${{this.subtotal}}</strong>
+            {{/unless}}
+            <button class="btn-quitar boton-chico boton-peligro" data-id="{{this.productId}}">Quitar</button>
+          </div>
         </li>
       {{/each}}
     </ul>
-  {{else}}
-    <p>El carrito está vacío.</p>
+
+    <p class="total">Total: <strong>${{total}}</strong></p>
+
+    <div class="carrito-acciones">
+      <button id="btn-comprar" {{#unless canPurchase}}disabled{{/unless}}>Finalizar compra</button>
+      <button id="btn-vaciar" class="boton-peligro">Vaciar carrito</button>
+    </div>
+
+    <p id="mensaje" class="mensaje-error"></p>
   {{/if}}
 
-  <a href="/products">Seguir comprando</a>
+  <p><a href="/products">← Seguir comprando</a></p>
 </div>
+
+<script src="/js/cart.js"></script>

@@ -4,7 +4,10 @@ import jwt from "jsonwebtoken";
 import { productRepository } from "../repositories/product.repository.js";
 import { cartRepository } from "../repositories/cart.repository.js";
 import { userRepository } from "../repositories/user.repository.js";
+import { ticketRepository } from "../repositories/ticket.repository.js";
 import UserDTO from "../dto/user.dto.js";
+import TicketDTO from "../dto/ticket.dto.js";
+import { roundMoney, formatDate } from "../utils/format.js";
 import { getUserFromResetToken } from "../services/passwordReset.service.js";
 
 const router = Router();
@@ -179,17 +182,118 @@ router.get("/admin/users/:uid/edit", requireAdmin, async (req, res) => {
   });
 });
 
-// Detalle de un carrito
-router.get("/carts/:cid", async (req, res) => {
+// Las pantallas de compra las ve un usuario logueado
+function requireLogin(req, res, next) {
+  if (!res.locals.user) return res.redirect("/login");
+
+  next();
+}
+
+function paginationData(result) {
+  return {
+    page: result.page,
+    totalPages: result.totalPages,
+    hasPrevPage: result.hasPrevPage,
+    hasNextPage: result.hasNextPage,
+    prevPage: result.prevPage,
+    nextPage: result.nextPage,
+  };
+}
+
+function toTicketView(ticket) {
+  return {
+    ...new TicketDTO(ticket),
+    date: formatDate(ticket.purchase_datetime),
+    itemsCount: ticket.products.reduce((count, item) => count + item.quantity, 0),
+  };
+}
+
+// Carrito del usuario logueado
+router.get("/carts/:cid", requireLogin, async (req, res) => {
   const { cid } = req.params;
 
   if (!isValidObjectId(cid)) return res.status(400).send("ID inválido");
+  if (res.locals.user.cart !== cid) return res.status(403).send("Solo podés ver tu propio carrito");
 
-  const cart = await cartRepository.getByIdPopulated(cid);
+  const cart = await cartRepository.getById(cid);
 
   if (!cart) return res.status(404).send("Carrito no encontrado");
 
-  res.render("cartDetail", { cart: cart.toJSON() });
+  const products = await productRepository.getByIds(cart.products.map((item) => item.product));
+  const productsById = new Map(products.map((product) => [product.id, product]));
+
+  const items = cart.products.map((item) => {
+    const productId = item.product.toString();
+    const product = productsById.get(productId);
+    const active = Boolean(product?.status);
+    const purchasable = active && product.stock >= item.quantity;
+
+    return {
+      productId,
+      title: product?.title ?? "Producto no disponible",
+      price: product?.price ?? 0,
+      quantity: item.quantity,
+      quantityMinus: item.quantity - 1,
+      quantityPlus: item.quantity + 1,
+      subtotal: product ? roundMoney(product.price * item.quantity) : 0,
+      stock: product?.stock ?? 0,
+      unavailable: !active,
+      lackOfStock: active && !purchasable,
+      purchasable,
+      canDecrease: item.quantity > 1,
+      canIncrease: active && item.quantity < product.stock,
+    };
+  });
+
+  const purchasableItems = items.filter((item) => item.purchasable);
+
+  res.render("cartDetail", {
+    items,
+    isEmpty: items.length === 0,
+    canPurchase: purchasableItems.length > 0,
+    total: roundMoney(purchasableItems.reduce((sum, item) => sum + item.subtotal, 0)),
+  });
+});
+
+// Mis compras
+router.get("/tickets", requireLogin, async (req, res) => {
+  if (res.locals.isAdmin) return res.redirect("/admin/tickets");
+
+  const { limit = 10, page = 1 } = req.query;
+  const result = await ticketRepository.getPaginatedByUser(res.locals.user.id, { limit, page });
+
+  res.render("tickets", { tickets: result.docs.map(toTicketView), basePath: "/tickets", ...paginationData(result) });
+});
+
+// Detalle de un ticket (su dueño o un admin)
+router.get("/tickets/:tid", requireLogin, async (req, res) => {
+  const { tid } = req.params;
+
+  if (!isValidObjectId(tid)) return res.status(400).send("ID inválido");
+
+  const ticket = await ticketRepository.getById(tid);
+
+  if (!ticket) return res.status(404).send("Ticket no encontrado");
+
+  const isOwner = ticket.user.toString() === res.locals.user.id;
+
+  if (!isOwner && !res.locals.isAdmin) return res.status(403).send("No tenés acceso a este ticket");
+
+  res.render("ticketDetail", { ticket: toTicketView(ticket), partial: isOwner && req.query.partial === "1" });
+});
+
+// Panel de administración: ventas
+router.get("/admin/tickets", requireAdmin, async (req, res) => {
+  const { limit = 10, page = 1 } = req.query;
+  const result = await ticketRepository.getPaginated({ limit, page });
+
+  res.render("tickets", {
+    adminTickets: true,
+    showPurchaser: true,
+    tickets: result.docs.map(toTicketView),
+    basePath: "/admin/tickets",
+    ...paginationData(result),
+  });
 });
 
 export default router;

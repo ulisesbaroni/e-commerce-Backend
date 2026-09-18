@@ -10,6 +10,7 @@ import productsRouter from "./routes/products.router.js";
 import cartsRouter from "./routes/carts.router.js";
 import sessionsRouter from "./routes/sessions.router.js";
 import usersRouter from "./routes/users.router.js";
+import ticketsRouter from "./routes/tickets.router.js";
 import viewsRouter from "./routes/views.router.js";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/tickets", ticketsRouter);
 
 // Rutas vistas
 app.use("/", viewsRouter);
@@ -49,7 +51,13 @@ app.use("/", viewsRouter);
 connectDB().then(async () => {
   await ensureAdminUser();
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+
+  // Si no puede escuchar (por ejemplo, puerto ocupado) el servidor no sirve: se corta en vez de quedar colgado
+  server.on("error", (error) => {
+    console.error("No se pudo iniciar el servidor:", error.message);
+    process.exit(1);
   });
 });

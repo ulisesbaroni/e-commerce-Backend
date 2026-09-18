@@ -1,0 +1,51 @@
+<div class="admin">
+  <div class="admin-encabezado">
+    <h1>{{#if showPurchaser}}Administración de ventas{{else}}Mis compras{{/if}}</h1>
+  </div>
+
+  {{#if adminTickets}}{{> adminNav}}{{/if}}
+
+  {{#if tickets.length}}
+    <table class="tabla-admin">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Fecha</th>
+          {{#if showPurchaser}}<th>Comprador</th>{{/if}}
+          <th>Unidades</th>
+          <th>Total</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each tickets}}
+          <tr>
+            <td data-label="Código"><strong>{{this.code}}</strong></td>
+            <td data-label="Fecha">{{this.date}}</td>
+            {{#if ../showPurchaser}}<td data-label="Comprador">{{this.purchaser}}</td>{{/if}}
+            <td data-label="Unidades">{{this.itemsCount}}</td>
+            <td data-label="Total">${{this.amount}}</td>
+            <td data-label="Detalle" class="acciones"><a class="boton boton-chico" href="/tickets/{{this.id}}">Ver</a></td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>{{#if showPurchaser}}Todavía no hay ventas.{{else}}Todavía no hiciste ninguna compra.{{/if}}</p>
+    {{#unless showPurchaser}}<a class="boton" href="/products">Ver productos</a>{{/unless}}
+  {{/if}}
+
+  <nav class="paginacion">
+    {{#if hasPrevPage}}
+      <a href="{{basePath}}?page={{prevPage}}">Anterior</a>
+    {{else}}
+      <span></span>
+    {{/if}}
+
+    <span>Página {{page}} de {{totalPages}}</span>
+
+    {{#if hasNextPage}}
+      <a href="{{basePath}}?page={{nextPage}}">Siguiente</a>
+    {{/if}}
+  </nav>
+</div>

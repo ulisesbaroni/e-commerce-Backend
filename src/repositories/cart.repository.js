@@ -22,22 +22,20 @@ export default class CartRepository {
     return Boolean(deleted);
   }
 
+  // Suma una unidad del producto. Las dos operaciones son atómicas: pedidos simultáneos
+  // (por ejemplo un doble clic) no duplican la línea ni pierden cantidad.
   async addProduct(cartId, productId) {
-    const cart = await this.dao.findById(cartId);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const cart =
+        (await this.dao.incrementProduct(cartId, productId)) ?? (await this.dao.pushProduct(cartId, productId));
 
-    if (!cart) return null;
+      if (cart) return cart;
 
-    const existing = cart.products.find((p) => p.product.toString() === productId);
-
-    if (existing) {
-      // Si ya existe, sumamos una unidad
-      existing.quantity += 1;
-    } else {
-      cart.products.push({ product: productId, quantity: 1 });
+      // Si el carrito no existe se termina; si no, otro pedido acaba de crear la línea y se reintenta
+      if (!(await this.dao.findById(cartId))) return null;
     }
 
-    await cart.save();
-    return cart;
+    return null;
   }
 
   async removeProduct(cartId, productId) {

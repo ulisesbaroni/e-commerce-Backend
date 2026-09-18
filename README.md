@@ -72,11 +72,30 @@ Todas las rutas con `:cid` requieren estar logueado como `user` y operar sobre e
 | ------ | --------------------------- | -------------------------------------------------- |
 | POST   | `/`                         | Crear un carrito                                   |
 | GET    | `/:cid`                     | Ver un carrito, con los productos poblados         |
-| POST   | `/:cid/product/:pid`        | Agregar un producto al carrito                     |
+| POST   | `/:cid/product/:pid`        | Agregar un producto al carrito (404 si no existe, 409 si está desactivado) |
+| POST   | `/:cid/purchase`            | Finalizar la compra del carrito (ver más abajo)    |
 | DELETE | `/:cid/products/:pid`       | Eliminar un producto del carrito                   |
 | PUT    | `/:cid`                     | Reemplazar todos los productos del carrito         |
 | PUT    | `/:cid/products/:pid`       | Actualizar la cantidad de un producto               |
 | DELETE | `/:cid`                     | Vaciar el carrito                                  |
+
+**Compra (`POST /api/carts/:cid/purchase`).** Cada producto del carrito se compra completo o queda en el carrito:
+
+- Con stock suficiente y producto activo: se descuenta el stock y el producto entra al ticket.
+- Sin stock suficiente o desactivado: no se compra y sigue en el carrito.
+- Compra completa (todo comprado): `complete: true`. Compra parcial: `complete: false` y `notPurchased` con el motivo de cada producto.
+- Si no se puede comprar nada: 409 sin ticket. Carrito vacío: 400.
+
+El stock se descuenta con una operación atómica, así que dos compras simultáneas nunca venden de más; si falla la creación del ticket, el stock se devuelve. Responde `payload.ticket` (con `code`, `purchase_datetime`, `amount`, `purchaser` y los productos comprados), `payload.complete` y `payload.notPurchased`.
+
+### Tickets — `/api/tickets`
+
+Requieren estar logueado. Un `user` ve solo sus compras y un `admin` ve todas las ventas.
+
+| Método | Ruta     | Descripción                                                          |
+| ------ | -------- | --------------------------------------------------------------------- |
+| GET    | `/`      | Lista paginada (`limit`, `page`), la más reciente primero             |
+| GET    | `/:tid`  | Detalle de un ticket (un `user` solo puede ver los suyos, si no responde 403) |
 
 ### Usuarios — `/api/users`
 
@@ -120,7 +139,10 @@ El JWT vence a la hora. Se puede enviar en la cookie `token` (automático tras e
 | `/reset-password/:token` | Elegir la contraseña nueva (es el enlace que llega por mail)   |
 | `/products`            | Lista paginada de productos, con botón de agregar al carrito (solo `user` logueado) |
 | `/products/:pid`       | Detalle de un producto, con botón de agregar al carrito          |
-| `/carts/:cid`          | Contenido de un carrito, con los productos poblados              |
+| `/carts/:cid`          | Mi carrito: cantidades, quitar, vaciar, total y "Finalizar compra" (solo su dueño) |
+| `/tickets`             | Mis compras (`user`)                                             |
+| `/tickets/:tid`        | Detalle de un ticket (su dueño o un `admin`)                     |
+| `/admin/tickets`       | Panel de administración: ventas de todos los usuarios (solo `admin`) |
 | `/admin/products`      | Panel de administración: listado con filtros, activar/desactivar y eliminar (solo `admin`) |
 | `/admin/products/new`  | Alta de producto (solo `admin`)                                  |
 | `/admin/products/:pid/edit` | Edición de producto (solo `admin`)                          |

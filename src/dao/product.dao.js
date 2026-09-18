@@ -17,6 +17,10 @@ export default class ProductDAO {
     return Product.create(data);
   }
 
+  findOneAndUpdate(filter, update, options) {
+    return Product.findOneAndUpdate(filter, update, options);
+  }
+
   findByIdAndUpdate(id, data, options) {
     return Product.findByIdAndUpdate(id, data, options);
   }
